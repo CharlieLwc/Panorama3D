@@ -1,0 +1,16 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "{926C9CA6-4380-DB4F-85FD-E881F062A955}",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "Panorama3D",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine"
+			]
+		}
+	]
+}
