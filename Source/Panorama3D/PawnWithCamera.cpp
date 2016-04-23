@@ -11,6 +11,11 @@ APawnWithCamera::APawnWithCamera()
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+
+	MaskSize = 512;
+	focalLength = 900;
+	InterpupillaryDistance = 0.064;
+
 	//Create root components
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
 
@@ -33,24 +38,38 @@ APawnWithCamera::APawnWithCamera()
 		}
 	}
 
-	//Create CameraSpringArm component
-	OurCameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraSpringArm"));
-	OurCameraSpringArm->AttachTo(RootComponent);
-	OurCameraSpringArm->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, 0.0f), FRotator(0.0f, 0.0f, 0.0f));
-	OurCameraSpringArm->TargetArmLength = 0.f;
-	OurCameraSpringArm->bEnableCameraLag = true;
-	OurCameraSpringArm->CameraLagSpeed = 3.0f;
+	//Create Camera components
+	{
 
-	//Create Camera component
-	OurCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("GameCamera"));
-	OurCamera->AttachTo(OurCameraSpringArm, USpringArmComponent::SocketName);
+
+		//Create CameraSpringArm component
+		OurCameraBase = CreateDefaultSubobject<USceneComponent>(TEXT("CameraBaseComponent"));
+		OurCameraBase->AttachTo(RootComponent);
+		OurCameraBase->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, 0.0f), FRotator(0.0f, 0.0f, 0.0f));
+
+		//Create Camera component
+		OurCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("GameCamera"));
+		OurCamera->AttachTo(OurCameraBase);
+
+
+		//Create LeftEye component
+		LeftEyePos = CreateDefaultSubobject<USceneComponent>(TEXT("LeftEye"));
+		LeftEyePos->AttachTo(OurCamera);
+		LeftEyePos->SetRelativeLocationAndRotation(FVector(-InterpupillaryDistance*0.5, 0.0f, 0.0f), FRotator(0.0f, 0.0f, 0.0f));
+
+
+		//Create RightEye component
+		RightEyePos = CreateDefaultSubobject<USceneComponent>(TEXT("RightEye"));
+		RightEyePos->AttachTo(OurCamera);
+		RightEyePos->SetRelativeLocationAndRotation(FVector(InterpupillaryDistance*0.5, 0.0f, 0.0f), FRotator(0.0f, 0.0f, 0.0f));
+
+
+
+	}
 
 	//Take control of the default Player
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
 
-
-	MaskSize = 512;
-	focalLength = 900;
 }
 
 // Called when the game starts or when spawned
@@ -77,16 +96,16 @@ void APawnWithCamera::Tick( float DeltaTime )
 
 	//Rotate our actor's yaw, which will turn our camera because we're attached to it
 	{
-		FRotator NewRotation = OurCameraSpringArm->GetComponentRotation();
+		FRotator NewRotation = OurCameraBase->GetComponentRotation();
 		NewRotation.Yaw += -CameraInput.X;
-		OurCameraSpringArm->SetWorldRotation(NewRotation);
+		OurCameraBase->SetWorldRotation(NewRotation);
 	}
 
 	//Rotate our camera's pitch, but limit it so we're always looking downward
 	{
-		FRotator NewRotation = OurCameraSpringArm->GetComponentRotation();
+		FRotator NewRotation = OurCameraBase->GetComponentRotation();
 		NewRotation.Pitch = FMath::Clamp(NewRotation.Pitch - CameraInput.Y, -80.0f, 80.0f);
-		OurCameraSpringArm->SetWorldRotation(NewRotation);
+		OurCameraBase->SetWorldRotation(NewRotation);
 	}
 
 	//Handle movement based on our "MoveX" and "MoveY" axes
@@ -101,6 +120,10 @@ void APawnWithCamera::Tick( float DeltaTime )
 			SetActorLocation(NewLocation);
 		}
 	}
+
+	
+	RV_MatInst->SetVectorParameterValue(FName("LeftCamPos"), LeftEyePos->GetComponentLocation());
+	RV_MatInst->SetVectorParameterValue(FName("RightCamPos"), RightEyePos->GetComponentLocation());
 }
 
 // Called to bind functionality to input
@@ -182,10 +205,16 @@ void APawnWithCamera::creatSimCaliMask()
 			float coordY = 1.0 - (z / xoz * arcLength / 2880.f + 0.5);
 			float coordNY = 1.0 - (-z / xoz * arcLength / 2880.f + 0.5);
 
+
+			coordX = coordX > 1.f ? 1.f : coordX;
+			coordX = coordX < 0.f ? 0.f : coordX;
+			coordY = coordY > 1.f ? 1.f : coordY;
+			coordY = coordY < 0.f ? 0.f : coordY;
+
 			SrcData[index++] = coordX;	//A
-			SrcData[index++] = coordY;	//B
-			SrcData[index++] = coordX;	//R
-			SrcData[index++] = coordNY;	//G
+			SrcData[index++] = coordY;	//G
+			SrcData[index++] = 0;	//R
+			SrcData[index++] = 0;	//G
 
 
 			yaw += stepYaw;

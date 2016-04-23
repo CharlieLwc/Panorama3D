@@ -37,6 +37,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Parameters")
 		int32 focalLength;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Parameters")
+		float InterpupillaryDistance;
+
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PreTexes")
 		UTexture2D* FigStitchingMask;
 
@@ -52,14 +56,22 @@ public:
 
 protected:
 	UPROPERTY(EditAnywhere)
-		USpringArmComponent* OurCameraSpringArm;
-	UCameraComponent* OurCamera;
+		USceneComponent* OurCameraBase;
+	UPROPERTY(EditAnywhere)
+		UCameraComponent* OurCamera;
 
 	UPROPERTY(EditAnywhere)
 		USphereComponent* SphereComponent;
 
 	UPROPERTY(EditAnywhere)
 		UStaticMeshComponent* SphereVisual;
+
+
+
+	UPROPERTY(EditAnywhere)
+		USceneComponent* LeftEyePos;
+	UPROPERTY(EditAnywhere)
+		USceneComponent* RightEyePos;
 
 	//Input variables
 	FVector2D MovementInput;
