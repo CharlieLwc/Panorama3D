@@ -28,10 +28,7 @@ ACanvasActor::ACanvasActor()
 	}
 
 
-
 	MaskSize = 512;
-	TestTex = true;
-	useFig = true;
 	focalLength = 900;
 
 }
