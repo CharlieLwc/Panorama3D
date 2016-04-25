@@ -47,12 +47,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PreTexes")
 		UTexture2D* SimCaliMask;
 
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Materials")
 		UMaterialInterface * MasterMaterialRef;
 
 	//~~~ BP Referenced Materials ~~~
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Materials")
 		UMaterialInstanceDynamic * RV_MatInst;
+
 
 protected:
 	UPROPERTY(EditAnywhere)
@@ -83,3 +85,4 @@ protected:
 	void PitchCamera(float AxisValue);
 	void YawCamera(float AxisValue);
 };
+

@@ -158,34 +158,65 @@ void APawnWithCamera::YawCamera(float AxisValue)
 	CameraInput.X = AxisValue;
 }
 
+typedef union {
+	float f;
+	char c[4];
+}FLOAT_CONV;
+
+
+/************************************************************
+Conversion little endian float data to big endian
+*************************************************************/
+static float __ltobf(float data)
+{
+	FLOAT_CONV d1, d2;
+
+	d1.f = data;
+
+	d2.c[0] = d1.c[0];
+	d2.c[1] = d1.c[1];
+	d2.c[2] = d1.c[2];
+	d2.c[3] = d1.c[3];
+
+	return d2.f;
+}
 
 void APawnWithCamera::creatSimCaliMask()
 {
 
-	SimCaliMask = UTexture2D::CreateTransient(MaskSize, MaskSize, PF_A32B32G32R32F);
-
 	// Allocate the texture HRI
-	SimCaliMask->UpdateResource();
+	SimCaliMask = UTexture2D::CreateTransient(MaskSize, MaskSize, PF_A32B32G32R32F);
+	SimCaliMask->Filter = TF_Nearest;
+//	SimCaliMask->UpdateResource();
+
+
 
 
 	int32 MipIndex = 0;
 	uint32 NumRegions = 1;
 	FUpdateTextureRegion2D* Region = new FUpdateTextureRegion2D(0, 0, 0, 0, MaskSize, MaskSize);
 
-	int32 SrcBpp = 4;
-	uint32 SrcPitch = MaskSize * 4 * SrcBpp;
-	bool bFreeData = false;
+	int32 SrcBpp = sizeof(FLinearColor);
+	uint32 SrcPitch = MaskSize * SrcBpp;
+	bool bFreeData = true;
+
+
+	FVector4 *sourceData = new FVector4[MaskSize*MaskSize];
+
 
 	float* SrcData = new float[MaskSize*MaskSize * 4];
 
 	float stepPitch = PI / MaskSize;
 	float stepYaw = 2.0 * PI / MaskSize;
 	int index = 0;
+	int index2 = 0;
+	float testStep = 1.0 / MaskSize;
 
-
+	float testx = 0.f;
 	float pitch = -hf_PI_d2;
 	for (int yInd = 0; yInd<MaskSize; yInd++)
 	{
+		float testy = 0.f;
 		float yaw = -PI;
 		for (int xInd = 0; xInd<MaskSize; xInd++)
 		{
@@ -205,27 +236,62 @@ void APawnWithCamera::creatSimCaliMask()
 			float coordY = 1.0 - (z / xoz * arcLength / 2880.f + 0.5);
 			float coordNY = 1.0 - (-z / xoz * arcLength / 2880.f + 0.5);
 
+			float temp = theta;
 
 			coordX = coordX > 1.f ? 1.f : coordX;
 			coordX = coordX < 0.f ? 0.f : coordX;
 			coordY = coordY > 1.f ? 1.f : coordY;
 			coordY = coordY < 0.f ? 0.f : coordY;
 
-			SrcData[index++] = coordX;	//A
-			SrcData[index++] = coordY;	//G
-			SrcData[index++] = 0;	//R
-			SrcData[index++] = 0;	//G
+			if (testy > 1.0)
+				testy = 0.0;
+
+			if (testx < 0.5)
+			{
+				sourceData[index2][0] = __ltobf(testy);
+				sourceData[index2][1] = 0.0;
+				sourceData[index2][2] = temp;
+				sourceData[index2][3] = 1.0;
+				
+				index2++;
+
+				SrcData[index++] = testy;
+				SrcData[index++] = 0.0;
+				SrcData[index++] = 0.0;
+				SrcData[index++] = 1.0;
 
 
+			}
+			else
+			{
+				sourceData[index2][0] = 0.0;
+				sourceData[index2][1] = __ltobf(1.0 - testy);
+				sourceData[index2][2] = temp;
+				sourceData[index2][3] = 1.0;
+
+
+				index2++;
+
+				SrcData[index++] = 0.0;
+				SrcData[index++] = 1.0 - testy;
+				SrcData[index++] = 0.0;
+				SrcData[index++] = 1.0;
+			}
+
+			testy += testStep;
 			yaw += stepYaw;
 		}
+		testx += testStep;
 		pitch += stepPitch;
 	}
 
-
-	UpdateTextureRegions(SimCaliMask, MipIndex, NumRegions, Region,
-		SrcPitch, SrcBpp, (uint8*)SrcData, bFreeData);
-
+	FTexture2DMipMap& Mip = SimCaliMask->PlatformData->Mips[0];
+	void* Data = Mip.BulkData.Lock(LOCK_READ_WRITE);
+	FMemory::Memcpy(Data, sourceData, MaskSize*SrcPitch);
+	Mip.BulkData.Unlock();
+	SimCaliMask->UpdateResource();
+	
+//	UpdateTextureRegions(SimCaliMask, MipIndex, NumRegions, Region,	SrcPitch, SrcBpp, (uint8*)sourceData, bFreeData);
 
 }
 
@@ -234,10 +300,12 @@ void APawnWithCamera::creatStitchingMask()
 
 	FigStitchingMask = UTexture2D::CreateTransient(MaskSize, MaskSize);
 
+
 	FigStitchingMask->Filter = TF_Nearest;
 
 	// Allocate the texture HRI
 	FigStitchingMask->UpdateResource();
+
 
 
 	int32 MipIndex = 0;
@@ -297,8 +365,10 @@ void APawnWithCamera::creatStitchingMask()
 	}
 
 
+	
 	UpdateTextureRegions(FigStitchingMask, MipIndex, NumRegions, Region,
 		SrcPitch, SrcBpp, SrcData, bFreeData);
+
 
 
 }
@@ -368,3 +438,4 @@ void APawnWithCamera::UpdateTextureRegions(UTexture2D* Texture, int32 MipIndex, 
 
 	}
 }
+
