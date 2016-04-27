@@ -56,6 +56,7 @@ public:
 		UMaterialInstanceDynamic * RV_MatInst;
 
 
+
 protected:
 	UPROPERTY(EditAnywhere)
 		USceneComponent* OurCameraBase;

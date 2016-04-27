@@ -86,6 +86,7 @@ void APawnWithCamera::BeginPlay()
 	RV_MatInst->SetTextureParameterValue(FName("StitchingTex"), FigStitchingMask);
 
 
+
 	SphereVisual->SetMaterial(0, RV_MatInst);
 }
 
@@ -121,9 +122,18 @@ void APawnWithCamera::Tick( float DeltaTime )
 		}
 	}
 
-	
-	RV_MatInst->SetVectorParameterValue(FName("LeftCamPos"), LeftEyePos->GetComponentLocation());
-	RV_MatInst->SetVectorParameterValue(FName("RightCamPos"), RightEyePos->GetComponentLocation());
+
+
+
+	FVector LeftEyePosition = LeftEyePos->GetComponentLocation() - OurCamera->GetComponentLocation();
+	LeftEyePosition.Normalize();
+
+	FVector RightEyePosition = RightEyePos->GetComponentLocation() - OurCamera->GetComponentLocation();
+	RightEyePosition.Normalize();
+
+
+	RV_MatInst->SetVectorParameterValue(FName("LeftEyePos"), LeftEyePosition);
+	RV_MatInst->SetVectorParameterValue(FName("RightEyePos"), RightEyePosition);
 }
 
 // Called to bind functionality to input
