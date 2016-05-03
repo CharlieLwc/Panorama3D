@@ -8,7 +8,7 @@
 // Sets default values
 APawnWithCamera::APawnWithCamera()
 {
- 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 
@@ -153,9 +153,9 @@ void APawnWithCamera::BeginPlay()
 }
 
 // Called every frame
-void APawnWithCamera::Tick( float DeltaTime )
+void APawnWithCamera::Tick(float DeltaTime)
 {
-	Super::Tick( DeltaTime );
+	Super::Tick(DeltaTime);
 
 	//Rotate our actor's yaw, which will turn our camera because we're attached to it
 	{
@@ -195,7 +195,7 @@ void APawnWithCamera::Tick( float DeltaTime )
 
 	FVector4 LeftEyeWeight;
 	FVector4 RightEyeWeight;
-	
+
 	for (int i = 0; i < 4; i++)
 	{
 		LeftEyeWeight[i] = FVector::DotProduct((LeftEyePosition - FishEyePos[i]), dir[i]) / length[i];
@@ -269,7 +269,7 @@ void APawnWithCamera::creatSimCaliMask()
 	// Allocate the texture HRI
 	SimCaliMask = UTexture2D::CreateTransient(MaskSize, MaskSize, PF_A32B32G32R32F);
 	SimCaliMask->Filter = TF_Nearest;
-//	SimCaliMask->UpdateResource();
+	//	SimCaliMask->UpdateResource();
 
 
 
@@ -334,7 +334,7 @@ void APawnWithCamera::creatSimCaliMask()
 				sourceData[index2][1] = 0.0;
 				sourceData[index2][2] = temp;
 				sourceData[index2][3] = 1.0;
-				
+
 				index2++;
 
 				SrcData[index++] = testy;
@@ -372,8 +372,8 @@ void APawnWithCamera::creatSimCaliMask()
 	FMemory::Memcpy(Data, sourceData, MaskSize*SrcPitch);
 	Mip.BulkData.Unlock();
 	SimCaliMask->UpdateResource();
-	
-//	UpdateTextureRegions(SimCaliMask, MipIndex, NumRegions, Region,	SrcPitch, SrcBpp, (uint8*)sourceData, bFreeData);
+
+	//	UpdateTextureRegions(SimCaliMask, MipIndex, NumRegions, Region,	SrcPitch, SrcBpp, (uint8*)sourceData, bFreeData);
 
 }
 
@@ -447,7 +447,7 @@ void APawnWithCamera::creatStitchingMask()
 	}
 
 
-	
+
 	UpdateTextureRegions(FigStitchingMask, MipIndex, NumRegions, Region,
 		SrcPitch, SrcBpp, SrcData, bFreeData);
 
@@ -520,4 +520,3 @@ void APawnWithCamera::UpdateTextureRegions(UTexture2D* Texture, int32 MipIndex, 
 
 	}
 }
-

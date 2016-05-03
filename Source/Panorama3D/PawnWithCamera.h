@@ -11,6 +11,7 @@ class PANORAMA3D_API APawnWithCamera : public APawn
 	GENERATED_BODY()
 
 public:
+
 	// Sets default values for this pawn's properties
 	APawnWithCamera();
 
@@ -23,7 +24,7 @@ public:
 
 
 	// Called every frame
-	virtual void Tick( float DeltaSeconds ) override;
+	virtual void Tick(float DeltaSeconds) override;
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
@@ -48,7 +49,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Parameters")
 		float InterpupillaryDistance;
-			
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PreTexes")
 		UTexture2D* FigStitchingMask;
 
@@ -110,5 +111,6 @@ protected:
 	void MoveRight(float AxisValue);
 	void PitchCamera(float AxisValue);
 	void YawCamera(float AxisValue);
+	
+	
 };
-

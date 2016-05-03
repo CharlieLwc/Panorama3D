@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{926C9CA6-4380-DB4F-85FD-E881F062A955}",
+	"EngineAssociation": "{63BAC5D7-48E1-D40F-B294-2B8E0E9FD9E2}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -16,10 +16,6 @@
 	"Plugins": [
 		{
 			"Name": "OculusRift",
-			"Enabled": false
-		},
-		{
-			"Name": "SteamVR",
 			"Enabled": false
 		}
 	]
