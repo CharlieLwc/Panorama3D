@@ -16,7 +16,12 @@ public:
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	
+
+	virtual void PostInitProperties() override;
+
+	virtual void  APawnWithCamera::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)override;
+
+
 	// Called every frame
 	virtual void Tick( float DeltaSeconds ) override;
 
@@ -31,6 +36,10 @@ public:
 	void creatSimCaliMask();
 
 
+	void CalDirs();
+	void MoveCameras();
+
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Parameters")
 		int32 MaskSize;
 
@@ -39,8 +48,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Parameters")
 		float InterpupillaryDistance;
-
-	
+			
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PreTexes")
 		UTexture2D* FigStitchingMask;
 
@@ -56,6 +64,17 @@ public:
 		UMaterialInstanceDynamic * RV_MatInst;
 
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PreTexes")
+		FVector FishEyePos1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PreTexes")
+		FVector FishEyePos2;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PreTexes")
+		FVector FishEyePos3;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PreTexes")
+		FVector FishEyePos4;
 
 protected:
 	UPROPERTY(EditAnywhere)
@@ -75,6 +94,12 @@ protected:
 		USceneComponent* LeftEyePos;
 	UPROPERTY(EditAnywhere)
 		USceneComponent* RightEyePos;
+
+	FVector dir[4];
+	FVector FishEyePos[4];
+	float length[4];
+
+
 
 	//Input variables
 	FVector2D MovementInput;

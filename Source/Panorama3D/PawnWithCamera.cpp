@@ -14,7 +14,16 @@ APawnWithCamera::APawnWithCamera()
 
 	MaskSize = 512;
 	focalLength = 900;
-	InterpupillaryDistance = 0.064;
+	InterpupillaryDistance = 0.10;
+
+	FishEyePos1 = FVector(0.0, 0.05, 0.0);
+	FishEyePos2 = FVector(0.05, 0.0, 0.0);
+	FishEyePos3 = FVector(0.0, -0.05, 0.0);
+	FishEyePos4 = FVector(-0.05, 0.0, 0.0);
+
+
+
+
 
 	//Create root components
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
@@ -55,14 +64,11 @@ APawnWithCamera::APawnWithCamera()
 		//Create LeftEye component
 		LeftEyePos = CreateDefaultSubobject<USceneComponent>(TEXT("LeftEye"));
 		LeftEyePos->AttachTo(OurCamera);
-		LeftEyePos->SetRelativeLocationAndRotation(FVector(-InterpupillaryDistance*0.5, 0.0f, 0.0f), FRotator(0.0f, 0.0f, 0.0f));
 
 
 		//Create RightEye component
 		RightEyePos = CreateDefaultSubobject<USceneComponent>(TEXT("RightEye"));
 		RightEyePos->AttachTo(OurCamera);
-		RightEyePos->SetRelativeLocationAndRotation(FVector(InterpupillaryDistance*0.5, 0.0f, 0.0f), FRotator(0.0f, 0.0f, 0.0f));
-
 
 
 	}
@@ -70,7 +76,59 @@ APawnWithCamera::APawnWithCamera()
 	//Take control of the default Player
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
 
+
+	CalDirs();
+	MoveCameras();
 }
+
+#if WITH_EDITOR
+void APawnWithCamera::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	CalDirs();
+	MoveCameras();
+
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+}
+#endif
+
+void APawnWithCamera::PostInitProperties()
+{
+	Super::PostInitProperties();
+
+
+	CalDirs();
+	MoveCameras();
+
+}
+
+void APawnWithCamera::MoveCameras()
+{
+	LeftEyePos->SetRelativeLocationAndRotation(FVector(0.0, -InterpupillaryDistance*0.5f, 0.0f), FRotator(0.0f, 0.0f, 0.0f));
+	RightEyePos->SetRelativeLocationAndRotation(FVector(0.0, InterpupillaryDistance*0.5f, 0.0f), FRotator(0.0f, 0.0f, 0.0f));
+}
+
+void APawnWithCamera::CalDirs()
+{
+
+	dir[0] = FishEyePos2 - FishEyePos1;
+	dir[1] = FishEyePos3 - FishEyePos2;
+	dir[2] = FishEyePos4 - FishEyePos3;
+	dir[3] = FishEyePos1 - FishEyePos4;
+
+	FishEyePos[0] = FishEyePos1;
+	FishEyePos[1] = FishEyePos2;
+	FishEyePos[2] = FishEyePos3;
+	FishEyePos[3] = FishEyePos4;
+
+
+	for (int i = 0; i < 4; i++)
+	{
+		length[i] = FVector::DotProduct(dir[i], dir[i]);
+		dir[i].Normalize();
+	}
+
+}
+
 
 // Called when the game starts or when spawned
 void APawnWithCamera::BeginPlay()
@@ -86,6 +144,10 @@ void APawnWithCamera::BeginPlay()
 	RV_MatInst->SetTextureParameterValue(FName("StitchingTex"), FigStitchingMask);
 
 
+	RV_MatInst->SetVectorParameterValue(FName("FishEyePos1"), FishEyePos1);
+	RV_MatInst->SetVectorParameterValue(FName("FishEyePos2"), FishEyePos2);
+	RV_MatInst->SetVectorParameterValue(FName("FishEyePos3"), FishEyePos3);
+	RV_MatInst->SetVectorParameterValue(FName("FishEyePos4"), FishEyePos4);
 
 	SphereVisual->SetMaterial(0, RV_MatInst);
 }
@@ -131,9 +193,19 @@ void APawnWithCamera::Tick( float DeltaTime )
 	FVector RightEyePosition = RightEyePos->GetComponentLocation() - OurCamera->GetComponentLocation();
 	RightEyePosition.Normalize();
 
+	FVector4 LeftEyeWeight;
+	FVector4 RightEyeWeight;
+	
+	for (int i = 0; i < 4; i++)
+	{
+		LeftEyeWeight[i] = FVector::DotProduct((LeftEyePosition - FishEyePos[i]), dir[i]) / length[i];
+		RightEyeWeight[i] = FVector::DotProduct((RightEyePosition - FishEyePos[i]), dir[i]) / length[i];
+	}
 
 	RV_MatInst->SetVectorParameterValue(FName("LeftEyePos"), LeftEyePosition);
 	RV_MatInst->SetVectorParameterValue(FName("RightEyePos"), RightEyePosition);
+	RV_MatInst->SetVectorParameterValue(FName("RightWeight"), LeftEyePosition);
+	RV_MatInst->SetVectorParameterValue(FName("LeftWeight"), RightEyePosition);
 }
 
 // Called to bind functionality to input
